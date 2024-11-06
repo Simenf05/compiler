@@ -1,1 +1,2 @@
-return 0;
+const value = 5;
+return value;
