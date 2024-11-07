@@ -229,7 +229,7 @@ fn const_declaration(statement: &Vec<Token>) -> AsmWithPlacement {
 }
 
 fn let_declaration(statement: &Vec<Token>) -> AsmWithPlacement {
-    let mut asm = String::from("");
+    let asm = String::from("");
 
     AsmWithPlacement {
         placement: AsmPlacement::Bss,
