@@ -11,6 +11,23 @@ pub enum AsmPlacement {
     Text,
 }
 
+fn print_asm(statement: &Vec<Token>) -> AsmWithPlacement {
+
+    let mut asm = String::from("    mov rax, 1\n    mov rdi, 1\n");
+
+    let var_name = statement[1].value.as_ref().unwrap().as_str();
+
+    asm += format!("    mov rsi, {}\n", var_name).as_str();
+    asm += format!("    mov rdx, {}_len\n", var_name).as_str();
+    asm += "    syscall\n\n";
+
+    AsmWithPlacement {
+        placement: AsmPlacement::Text,
+        asm,
+    }
+}
+
+
 fn return_asm(statement: &Vec<Token>) -> AsmWithPlacement {
     let mut asm = String::from("    mov rax, 60\n");
 
@@ -35,7 +52,12 @@ fn const_declaration(statement: &Vec<Token>) -> AsmWithPlacement {
 
     asm += statement[1].value.as_ref().unwrap().as_str();
     asm += " db ";
-    asm += statement[3].value.as_ref().unwrap().as_str();
+    if statement[3].token_type == TokenType::Number {
+        asm += statement[3].value.as_ref().unwrap().as_str();
+    } else if statement[3].token_type == TokenType::String {
+        asm += format!("'{}'\n", statement[3].value.as_ref().unwrap()).as_str();
+        asm += format!("{0}_len equ $ - {0}", statement[1].value.as_ref().unwrap()).as_str();
+    }
     asm += "\n";
 
     AsmWithPlacement {
@@ -60,6 +82,7 @@ pub fn statement_to_asm(statement: &Vec<Token>) -> Option<AsmWithPlacement> {
         TokenType::Return => Some(return_asm(statement)),
         TokenType::Let => Some(let_declaration(statement)),
         TokenType::Const => Some(const_declaration(statement)),
+        TokenType::Print => Some(print_asm(statement)),
         _ => None,
     }
 }

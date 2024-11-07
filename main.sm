@@ -1,2 +1,3 @@
-const simen = 62;
-return simen;
+const simen = "er kul";
+print simen;
+return 0;

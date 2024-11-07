@@ -15,6 +15,7 @@ pub enum TokenType {
     Declaration,
     Variable,
     Const,
+    Print,
 }
 
 fn evaluate_buffer(buffer: &str) -> Option<Token> {
@@ -39,6 +40,10 @@ fn evaluate_buffer(buffer: &str) -> Option<Token> {
         }),
         "const" => Some(Token {
             token_type: TokenType::Const,
+            value: None,
+        }),
+        "print" => Some(Token {
+            token_type: TokenType::Print,
             value: None,
         }),
         _ => None,
@@ -97,12 +102,21 @@ fn evaluate_buffer(buffer: &str) -> Option<Token> {
 pub fn tokenaize(file: String) -> Vec<Token> {
     let mut tokens = Vec::new();
     let mut buffer = String::new();
+    let mut in_lit = false;
 
     for char in file.chars() {
         buffer += char.to_string().as_str();
-        if buffer.chars().last() == Some(' ')
+
+        if buffer.len() == 1 && buffer.chars().last() == Some('"') {
+            in_lit = true;
+        } else if in_lit && buffer.chars().last() == Some('"') {
+            in_lit = false;
+        }
+
+        if (buffer.chars().last() == Some(' ')
             || buffer.chars().last() == Some('\n')
-            || buffer.chars().last() == Some(';')
+            || buffer.chars().last() == Some(';')) 
+            && !in_lit
         {
             let buffer_len = buffer.len();
             let first_part = evaluate_buffer(&buffer[..buffer_len - 1]);
