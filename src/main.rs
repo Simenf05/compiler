@@ -3,7 +3,9 @@
 // use std::collections::HashMap;
 use std::env;
 use std::fs;
+use std::fs::create_dir_all;
 use std::fs::File;
+use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
@@ -286,6 +288,21 @@ fn token_to_asm(tokens: Vec<Token>) -> String {
     result
 }
 
+fn write_file(path: &str, asm: String) -> io::Result<()> {
+
+    let path = Path::new(path);
+    let display = path.display();
+
+    if let Some(parent) = path.parent() {
+        create_dir_all(parent)?;
+    }
+
+    let mut file = File::create(&path)?;
+    file.write_all(asm.as_bytes())?;
+
+    Ok(())
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -295,26 +312,22 @@ fn main() {
 
     let asm = token_to_asm(tokens);
 
-    let path = Path::new("./asm/out.asm");
-    let display = path.display();
+    let out = format!("./asm/{}", &args[1].split(".").collect::<Vec<&str>>()[0]);
+    let out_asm = out.clone() + ".asm";
+    let out_o = out.clone() + ".o";
 
-    let mut file = match File::create(&path) {
-        Err(why) => panic!("couldn't create {}: {}", display, why),
-        Ok(file) => file,
-    };
-
-    match file.write_all(asm.as_bytes()) {
-        Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => println!("successfully wrote to {}", display),
+    match write_file(out_asm.as_str(), asm) {
+        Err(err) => panic!("writing to file failed {}", err),
+        Ok(_) => (),
     }
 
     let _ = Command::new("sh")
         .arg("-c")
-        .arg("nasm -felf64 ./asm/out.asm")
+        .arg(format!("nasm -felf64 {}", out_asm).as_str())
         .output();
 
     let _ = Command::new("sh")
         .arg("-c")
-        .arg("ld -o ./asm/out ./asm/out.o")
+        .arg(format!("ld -o {} {}", out, out_o).as_str())
         .output();
 }
