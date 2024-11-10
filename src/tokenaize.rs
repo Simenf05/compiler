@@ -1,11 +1,11 @@
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Token {
     pub token_type: TokenType,
     pub value: Option<String>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum TokenType {
     Return,
     Semicolon,
@@ -16,6 +16,10 @@ pub enum TokenType {
     Variable,
     Const,
     Print,
+    If,
+    Compare,
+    OpenBlock,
+    CloseBlock,
 }
 
 fn evaluate_buffer(buffer: &str) -> Option<Token> {
@@ -44,6 +48,22 @@ fn evaluate_buffer(buffer: &str) -> Option<Token> {
         }),
         "print" => Some(Token {
             token_type: TokenType::Print,
+            value: None,
+        }),
+        "if" => Some(Token {
+            token_type: TokenType::If,
+            value: None,
+        }),
+        "==" => Some(Token {
+            token_type: TokenType::Compare,
+            value: None,
+        }),
+        "{" => Some(Token {
+            token_type: TokenType::OpenBlock,
+            value: None,
+        }),
+        "}" => Some(Token {
+            token_type: TokenType::CloseBlock,
             value: None,
         }),
         _ => None,
@@ -115,7 +135,10 @@ pub fn tokenaize(file: String) -> Vec<Token> {
 
         if (buffer.chars().last() == Some(' ')
             || buffer.chars().last() == Some('\n')
-            || buffer.chars().last() == Some(';')) 
+            || buffer.chars().last() == Some(';')
+            || buffer.chars().last() == Some('{')
+            || buffer.chars().last() == Some('}')
+        ) 
             && !in_lit
         {
             let buffer_len = buffer.len();

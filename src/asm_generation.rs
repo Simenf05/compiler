@@ -1,4 +1,4 @@
-use crate::tokenaize::{ Token, TokenType };
+use crate::{build_ast::AST, tokenaize::{ Token, TokenType }};
 
 pub struct AsmWithPlacement {
     pub placement: AsmPlacement,
@@ -85,4 +85,15 @@ pub fn statement_to_asm(statement: &Vec<Token>) -> Option<AsmWithPlacement> {
         TokenType::Print => Some(print_asm(statement)),
         _ => None,
     }
+}
+
+pub fn ast_to_asm(ast: AST) -> String {
+    let mut asm = String::from("");
+
+
+
+
+
+
+    return asm
 }

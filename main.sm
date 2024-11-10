@@ -1,3 +1,8 @@
-const simen = "er kul";
-print simen;
+simen2 = 0;
+if simen2 == 0 {
+    const simen = 0;
+    if simen == 0 {
+        print simen;
+    }
+}
 return 0;

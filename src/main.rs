@@ -5,13 +5,17 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
-use std::process::Command;
 
 mod asm_generation;
 mod tokenaize;
+mod build_ast;
+
+use asm_generation::ast_to_asm;
 
 use crate::asm_generation::{ AsmPlacement, statement_to_asm };
 use crate::tokenaize::{ Token, TokenType };
+use crate::build_ast::{ AST, tokens_to_ast };
+
 
 fn token_to_asm(tokens: Vec<Token>) -> String {
     let mut result = String::new();
@@ -54,7 +58,6 @@ fn token_to_asm(tokens: Vec<Token>) -> String {
 }
 
 fn write_file(path: &str, asm: String) -> io::Result<()> {
-
     let path = Path::new(path);
 
     if let Some(parent) = path.parent() {
@@ -67,6 +70,8 @@ fn write_file(path: &str, asm: String) -> io::Result<()> {
     Ok(())
 }
 
+
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -74,24 +79,35 @@ fn main() {
 
     let tokens = tokenaize::tokenaize(file);
 
-    let asm = token_to_asm(tokens);
+    let ast = tokens_to_ast(tokens, None);
 
-    let out = format!("./asm/{}", &args[1].split(".").collect::<Vec<&str>>()[0]);
-    let out_asm = out.clone() + ".asm";
-    let out_o = out.clone() + ".o";
+    println!("{ast:#?}");
 
-    match write_file(out_asm.as_str(), asm) {
-        Err(err) => panic!("writing to file failed {}", err),
-        Ok(_) => (),
-    }
+    // let asm = token_to_asm(tokens);
 
-    let _ = Command::new("sh")
-        .arg("-c")
-        .arg(format!("nasm -felf64 {}", out_asm).as_str())
-        .output();
+    let asm = ast_to_asm(ast);
 
-    let _ = Command::new("sh")
-        .arg("-c")
-        .arg(format!("ld -o {} {}", out, out_o).as_str())
-        .output();
+    println!("{asm}")
+
+
+
+
+    // let out = format!("./asm/{}", &args[1].split(".").collect::<Vec<&str>>()[0]);
+    // let out_asm = out.clone() + ".asm";
+    // let out_o = out.clone() + ".o";
+
+    // match write_file(out_asm.as_str(), asm) {
+    //     Err(err) => panic!("writing to file failed {}", err),
+    //     Ok(_) => (),
+    // }
+
+    // let _ = Command::new("sh")
+    //     .arg("-c")
+    //     .arg(format!("nasm -felf64 {}", out_asm).as_str())
+    //     .output();
+
+    // let _ = Command::new("sh")
+    //     .arg("-c")
+    //     .arg(format!("ld -o {} {}", out, out_o).as_str())
+    //     .output();
 }
